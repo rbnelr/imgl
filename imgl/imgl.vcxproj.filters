@@ -1,0 +1,75 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\raz_libs">
+      <UniqueIdentifier>{68e85898-6727-44c0-9c92-b215faed4431}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="imgl.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="platform_window.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rendering.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="raz_libs\basic_typedefs.hpp">
+      <Filter>Source Files\raz_libs</Filter>
+    </ClInclude>
+    <ClInclude Include="raz_libs\compiler_specific.hpp">
+      <Filter>Source Files\raz_libs</Filter>
+    </ClInclude>
+    <ClInclude Include="raz_libs\defer.hpp">
+      <Filter>Source Files\raz_libs</Filter>
+    </ClInclude>
+    <ClInclude Include="raz_libs\math.hpp">
+      <Filter>Source Files\raz_libs</Filter>
+    </ClInclude>
+    <ClInclude Include="raz_libs\preprocessor_stuff.hpp">
+      <Filter>Source Files\raz_libs</Filter>
+    </ClInclude>
+    <ClInclude Include="raz_libs\prints.hpp">
+      <Filter>Source Files\raz_libs</Filter>
+    </ClInclude>
+    <ClInclude Include="raz_libs\simple_file_io.hpp">
+      <Filter>Source Files\raz_libs</Filter>
+    </ClInclude>
+    <ClInclude Include="raz_libs\string_stuff.hpp">
+      <Filter>Source Files\raz_libs</Filter>
+    </ClInclude>
+    <ClInclude Include="raz_libs\vector.hpp">
+      <Filter>Source Files\raz_libs</Filter>
+    </ClInclude>
+    <ClInclude Include="raz_libs\vector_tv2.hpp">
+      <Filter>Source Files\raz_libs</Filter>
+    </ClInclude>
+    <ClInclude Include="raz_libs\vector_tv3.hpp">
+      <Filter>Source Files\raz_libs</Filter>
+    </ClInclude>
+    <ClInclude Include="raz_libs\vector_tv4.hpp">
+      <Filter>Source Files\raz_libs</Filter>
+    </ClInclude>
+    <ClInclude Include="colors.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
