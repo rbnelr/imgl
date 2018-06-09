@@ -153,11 +153,18 @@
     <ClInclude Include="raz_libs\vector_tv3.hpp" />
     <ClInclude Include="raz_libs\vector_tv4.hpp" />
     <ClInclude Include="rendering.hpp" />
+    <ClInclude Include="shader.hpp" />
     <ClInclude Include="sorted_vector.hpp" />
     <ClInclude Include="texture.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="todo.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\solid_col.frag" />
+    <None Include="shaders\solid_col.vert" />
+    <None Include="shaders\textured.frag" />
+    <None Include="shaders\textured.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

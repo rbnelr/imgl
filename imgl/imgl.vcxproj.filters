@@ -11,13 +11,13 @@
     <Filter Include="src\raz_libs">
       <UniqueIdentifier>{68e85898-6727-44c0-9c92-b215faed4431}</UniqueIdentifier>
     </Filter>
+    <Filter Include="shaders">
+      <UniqueIdentifier>{5bb1171c-7e5e-4ec5-9357-3ff04acc928b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="deps\glad\glad.c">
-      <Filter>deps</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -84,8 +84,28 @@
     <ClInclude Include="deps\glad\khrplatform.h">
       <Filter>deps</Filter>
     </ClInclude>
+    <ClInclude Include="deps\glad\glad.c">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="shader.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="todo.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\solid_col.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\solid_col.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\textured.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\textured.vert">
+      <Filter>shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
