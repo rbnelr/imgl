@@ -6,7 +6,9 @@
 #include "imgl.hpp"
 
 void draw () {
-	text("Training in\nProgress...");
+	//text("Training in\nProgress...");
+
+	sdf_test();
 }
 
 int main () {
