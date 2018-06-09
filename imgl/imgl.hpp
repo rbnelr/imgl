@@ -80,45 +80,9 @@ void close_window () {
 }
 
 //
-bool is_newline_c (char c) {	return c == '\n' || c == '\r'; }
-bool newline (char** pcur) {
-	char* cur = *pcur;
-
-	char c = *cur;
-	if (!is_newline_c(c)) {
-		return false;
-	}
-
-	++cur;
-
-	char c2 = *cur;
-	if (is_newline_c(c2) && c2 != c) {
-		++cur; // skip '\n\r' and '\r\n'
-	}
-	
-	*pcur = cur;
-	return true;
-}
-
-int count_lines (std::string const& s) {
-	int lines = 1;
-	
-	char* cur = (char*)s.c_str();
-
-	while (*cur != '\0') {
-		if (newline(&cur)) {
-			++lines;
-		} else {
-			++cur;
-		}
-	}
-
-	return lines;
-}
-
 #include "rendering.hpp" // abstracts how
 
-void text (std::string const& str, std::string font="Arial") {
+void text (std::string const& str, std::string font="c:/windows/fonts/arial.ttf") {
 	int lines = count_lines(str);
 
 	auto reg = get_current_region();
@@ -126,7 +90,7 @@ void text (std::string const& str, std::string font="Arial") {
 	f32 avail_height_px = reg.full_avail_size_px().y;
 	f32 desired_line_h_px = avail_height_px / (float)lines;
 
-	auto* sized_font = cache_font(font, desired_line_h_px);
+	auto* sized_font = cached_font(font, desired_line_h_px);
 
 	render_text(window, reg, str, sized_font, desired_line_h_px);
 }

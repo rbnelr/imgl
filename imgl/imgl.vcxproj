@@ -74,7 +74,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)deps\glfw-3.2.1.bin.WIN64\include\GLFW;$(ProjectDir)deps\glad;$(ProjectDir)raz_libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)deps\glfw-3.2.1.bin.WIN64\include\GLFW;$(ProjectDir)deps\stb;$(ProjectDir)deps\glad;$(ProjectDir)raz_libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ShowIncludes>false</ShowIncludes>
     </ClCompile>
     <Link>
@@ -87,7 +87,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)deps\glfw-3.2.1.bin.WIN64\include\GLFW;$(ProjectDir)deps\glad;$(ProjectDir)raz_libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)deps\glfw-3.2.1.bin.WIN64\include\GLFW;$(ProjectDir)deps\stb;$(ProjectDir)deps\glad;$(ProjectDir)raz_libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ShowIncludes>false</ShowIncludes>
     </ClCompile>
     <Link>
@@ -102,7 +102,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)deps\glfw-3.2.1.bin.WIN64\include\GLFW;$(ProjectDir)deps\glad;$(ProjectDir)raz_libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)deps\glfw-3.2.1.bin.WIN64\include\GLFW;$(ProjectDir)deps\stb;$(ProjectDir)deps\glad;$(ProjectDir)raz_libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ShowIncludes>false</ShowIncludes>
     </ClCompile>
     <Link>
@@ -119,7 +119,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)deps\glfw-3.2.1.bin.WIN64\include\GLFW;$(ProjectDir)deps\glad;$(ProjectDir)raz_libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)deps\glfw-3.2.1.bin.WIN64\include\GLFW;$(ProjectDir)deps\stb;$(ProjectDir)deps\glad;$(ProjectDir)raz_libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ShowIncludes>false</ShowIncludes>
     </ClCompile>
     <Link>
@@ -130,10 +130,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="deps\glad\glad.c" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="colors.hpp" />
+    <ClInclude Include="deps\glad\glad.h" />
+    <ClInclude Include="deps\glad\khrplatform.h" />
+    <ClInclude Include="font.hpp" />
     <ClInclude Include="imgl.hpp" />
     <ClInclude Include="platform_window.hpp" />
     <ClInclude Include="raz_libs\basic_typedefs.hpp" />
@@ -149,6 +153,11 @@
     <ClInclude Include="raz_libs\vector_tv3.hpp" />
     <ClInclude Include="raz_libs\vector_tv4.hpp" />
     <ClInclude Include="rendering.hpp" />
+    <ClInclude Include="sorted_vector.hpp" />
+    <ClInclude Include="texture.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="todo.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

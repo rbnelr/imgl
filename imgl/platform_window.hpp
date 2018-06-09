@@ -100,12 +100,12 @@ struct Window {
 	}
 
 
-	void toggle_fullscreen (int swap_interval) {
+	void toggle_fullscreen () {
 		if (!fullscreen) {
 			
 			get_win32_windowplacement();
 
-			GLFWmonitor* fullscreen_monitor;
+			GLFWmonitor* fullscreen_monitor = nullptr;
 			{
 				int count;
 				GLFWmonitor** monitors = glfwGetMonitors(&count);
@@ -130,8 +130,12 @@ struct Window {
 
 	void save_window_positioning () {
 		
-		get_win32_windowplacement();
-		
+		if (fullscreen) {
+			// keep window positioning that we got when we switched to fullscreen
+		} else {
+			get_win32_windowplacement();
+		}
+
 		if (!write_fixed_size_binary_file("saves/window_placement.bin", &win32_windowplacement, sizeof(win32_windowplacement))) {
 			fprintf(stderr, "Could not save window_placement to saves/window_placement.bin, window position and size won't be restored on the next launch of this app.");
 		}
@@ -143,8 +147,6 @@ struct Window {
 	//
 	void open_window (std::string const& title, s32v2 default_size) { // should only happen once
 		
-		glfwSetWindowUserPointer(window, this);
-
 		glfwSetErrorCallback(glfw_error_proc);
 
 		assert(glfwInit() != 0);
@@ -164,6 +166,8 @@ struct Window {
 		s32v2 size = placement_loaded ? to_rect(win32_windowplacement.rcNormalPosition).get_size() : default_size;
 
 		window = glfwCreateWindow(size.x,size.y, title.c_str(), NULL, NULL);
+
+		glfwSetWindowUserPointer(window, this);
 
 		if (placement_loaded) {
 			set_win32_windowplacement();
@@ -206,7 +210,7 @@ struct Window {
 		} else assert(not_implemented);
 
 		if (do_toggle_fullscreen)
-			
+			toggle_fullscreen();
 
 		glfwGetFramebufferSize(window, &framebuffer_size_px.x,&framebuffer_size_px.y);
 
@@ -221,7 +225,7 @@ struct Window {
 	}
 
 	void close_window () {
-
+		
 		save_window_positioning();
 
 		glfwDestroyWindow(window);

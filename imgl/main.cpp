@@ -15,7 +15,7 @@ int main () {
 		if (!begin_window("Mein Tolles Grafikprogramm", rgb8(255,128,39), POLL_FOR_INPUT))
 			break; // Window was closed via a standart close command (Close button or Alt-F4)
 
-		begin_imgui();
+		//begin_imgui();
 
 		bool my_own_exit_condition = false;
 		if (my_own_exit_condition)
@@ -23,7 +23,7 @@ int main () {
 
 		draw();
 
-		end_imgui();
+		//end_imgui();
 
 		//end_window(vsync_mode(MAX_REFRESH_RATE));
 		end_window(VSYNC);
