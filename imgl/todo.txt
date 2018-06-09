@@ -1,4 +1,9 @@
-
-render text
-
-
+DONE:
+ 
+ 
+TODO:
+ render text
+ 
+ try stb truetype signed distance field text rendering
+ -> since i like dynamic resizeable text, see if using SDF there can be a general font loading procedure that allows displaying small text (few pixels) up to big text (one char as big as the screen) without excessive memory or computation cost (SDF should be sharp at any res, but may not look perfect)
+ 
