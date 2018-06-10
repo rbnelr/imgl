@@ -65,8 +65,8 @@ bool begin_window (std::string const& title, rgb8 clear_col=0, e_input_mode inpu
 	//glEnable(GL_FRAMEBUFFER_SRGB);
 
 	auto sz = window.get_size();
-	glScissor(0,0, sz.x,sz.y);
 	glViewport(0,0, sz.x,sz.y);
+	glScissor(0,0, sz.x,sz.y);
 
 	rgbf col = (rgbf)clear_col / 255;
 	glClearColor(col.x, col.y, col.z, 1);

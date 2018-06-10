@@ -5,6 +5,11 @@ in		vec4	vs_col;
 
 out		vec4	frag_col;
 
+uniform	float	onedge_val;
+uniform	float	outline_delta;
+uniform	vec2	sdf_delta_per_uv_unit;
+uniform	float	aa_px_dist;
+
 uniform sampler2D	tex;
 
 // for wireframe
@@ -32,14 +37,17 @@ void main () {
 	
 	float sdf = texture(tex, vs_uv).r;
 
-	if (0 != 0) {
-		
-		float edge = 180 / 255.0;
-		float edge_aa = 5 / 255.0;
+	if (1 != 0) {
 
-		float alpha = saturate(map(sdf, edge -edge_aa, edge +edge_aa, 0,1));
+		vec2 uv_size = vec2(dFdx(vs_uv.x), dFdy(vs_uv.y));
+		vec2 sdf_delta_per_fragment = sdf_delta_per_uv_unit * uv_size;
 
-		frag_col = vec4(1,1,1,alpha) * vs_col;
+		float edge_aa = (aa_px_dist * sdf_delta_per_fragment).x; // x == y should be ?
+
+		float glyph_alpha = saturate(map(sdf, onedge_val -outline_delta -edge_aa/2, onedge_val -outline_delta +edge_aa/2, 0,1));
+		float outline_alpha = saturate(map(sdf, onedge_val -edge_aa/2, onedge_val +edge_aa/2, 0,1));
+
+		frag_col = vec4(1,1,1,glyph_alpha) * mix(vec4(1,1,1,1), vec4(1,0.2,0.2,1), outline_alpha);
 	}
 	else if (0 != 0) {
 		frag_col = vec4(1,1,1,sdf) * vs_col;

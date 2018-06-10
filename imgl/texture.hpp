@@ -21,6 +21,7 @@ namespace gl_texture {
 	};
 	enum border_e {
 		BORDER_CLAMP,
+		BORDER_COLOR,
 	};
 
 	// minimal but still useful texture class
@@ -110,6 +111,7 @@ namespace gl_texture {
 				case FILTER_NEAREST:	min = mag = GL_NEAREST;								break;
 				case FILTER_BILINEAR:	min = mag = GL_LINEAR;								break;
 				case FILTER_TRILINEAR:	min = GL_LINEAR_MIPMAP_LINEAR;	mag = GL_LINEAR;	break;
+				default: assert(not_implemented);
 			}
 
 			glBindTexture(GL_TEXTURE_2D, handle);
@@ -131,11 +133,22 @@ namespace gl_texture {
 			}
 		}
 
-		void set_border (border_e border) {
+		void set_border (border_e border, rgba8 border_color=0) {
+			GLenum mode;
+			rgbaf border_colorf;
+
+			switch (border) {
+				case BORDER_CLAMP:	mode = GL_CLAMP_TO_EDGE; break;
+				case BORDER_COLOR:	mode = GL_CLAMP_TO_BORDER;
+									border_colorf = (rgbaf)border_color / 255;	break;
+				default: assert(not_implemented);
+			}
+
 			glBindTexture(GL_TEXTURE_2D, handle);
-			assert(border == BORDER_CLAMP);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, mode);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, mode);
+			if (border == BORDER_COLOR)
+				glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &border_colorf.x);
 			glBindTexture(GL_TEXTURE_2D, 0);
 		}
 
@@ -149,13 +162,13 @@ namespace gl_texture {
 		glBindTexture(GL_TEXTURE_2D, tex.handle);
 	}
 
-	Texture2D single_mip_texture (pixel_format_e format, u8* pixels, s32v2 size_px, minmag_filter_e minmag=FILTER_BILINEAR, aniso_filter_e aniso=FILTER_ANISO, border_e border=BORDER_CLAMP) {
+	Texture2D single_mip_texture (pixel_format_e format, u8* pixels, s32v2 size_px, minmag_filter_e minmag=FILTER_BILINEAR, aniso_filter_e aniso=FILTER_ANISO, border_e border=BORDER_CLAMP, rgba8 border_color=0) {
 		auto tex = Texture2D::generate();
 		tex.upload(format, pixels, size_px);
 		
 		tex.set_minmag_filtering(minmag);
 		tex.enable_filtering_anisotropic(aniso);
-		tex.set_border(border);
+		tex.set_border(border, border_color);
 
 		return tex;
 	}

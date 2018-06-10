@@ -173,7 +173,7 @@ void sdf_test () {
 		s32v2		size = 0;
 	};
 	
-	auto std_test_tex = [] (char codepoint, std::string fontpath, f32 font_height, f32 padding_ratio, f32 onedge_val) {
+	auto std_test_tex = [] (char codepoint, std::string fontpath, f32 font_height, f32 padding, f32 onedge_val, f32* val_delta_per_texel) {
 		Sized_Tex sdf;
 		
 		Blob file_data;
@@ -188,11 +188,11 @@ void sdf_test () {
 		if (codepoint == (int)' ')
 			return sdf;
 
-		f32 padding = font_height * padding_ratio;
-
 		s32v2 sdf_glyph_origin;
 
-		u8* sdf_pixels = stbtt_GetCodepointSDF(&fontinfo, stbtt_ScaleForPixelHeight(&fontinfo, font_height), (int)codepoint, padding, onedge_val, onedge_val / padding, &sdf.size.x,&sdf.size.y, &sdf_glyph_origin.x,&sdf_glyph_origin.y);
+		*val_delta_per_texel = onedge_val / padding;
+
+		u8* sdf_pixels = stbtt_GetCodepointSDF(&fontinfo, stbtt_ScaleForPixelHeight(&fontinfo, font_height), (int)codepoint, padding, onedge_val, *val_delta_per_texel, &sdf.size.x,&sdf.size.y, &sdf_glyph_origin.x,&sdf_glyph_origin.y);
 
 		flip_vertical_inplace(sdf_pixels, sdf.size.x * sizeof(u8), sdf.size.y);
 
@@ -209,20 +209,32 @@ void sdf_test () {
 	static std::string codepoint = "a";
 	static std::string fontpath = "c:/windows/fonts/arial.ttf";
 	static f32 font_height = 64;
-	static f32 padding_ratio = 0.2f;
+	static f32 outline_ratio = 0.03f;
+	static f32 padding_ratio = 0.1f;
 	static f32 onedge_val = 180;
 
 	regen = ImGui::InputText_str("codepoint", &codepoint) || regen;
 	regen = ImGui::InputText_str("fontpath", &fontpath) || regen;
 	regen = ImGui::DragFloat("font_height", &font_height, 0.05f) || regen;
+	regen = ImGui::DragFloat("outline_ratio", &outline_ratio, 0.005f) || regen;
+
 	regen = ImGui::DragFloat("padding_ratio", &padding_ratio, 0.005f) || regen;
 	regen = ImGui::DragFloat("onedge_val", &onedge_val, 0.05f) || regen;
 
+	static f32 sdf_delta_per_texel;
+
 	if (regen)
-		tex = std_test_tex(codepoint.size() >= 1 ? codepoint[0] : '_', fontpath, font_height, padding_ratio, onedge_val);
+		tex = std_test_tex(codepoint.size() >= 1 ? codepoint[0] : '_', fontpath, font_height, font_height * padding_ratio, onedge_val, &sdf_delta_per_texel);
 	regen = false;
 
+	float outline = font_height * outline_ratio;
+
 	ImGui::Value("glyph size", tex.size);
+	ImGui::Value("outline", outline);
+	ImGui::Value("sdf_delta_per_texel", sdf_delta_per_texel);
+
+	fv2 sdf_delta_per_uv_unit = (sdf_delta_per_texel / 255) * (fv2)tex.size;
+	f32 outline_delta = (sdf_delta_per_texel / 255) * outline;
 
 	fv2 full_sz = (fv2)window.get_size();
 	fv2 sz = min(full_sz.x,full_sz.y) * 0.9f;
@@ -235,6 +247,18 @@ void sdf_test () {
 
 	static auto shad = load_shader("shaders/sdf_font.vert", "shaders/sdf_font.frag");
 
-	if (vbo_data.size() > 0 && all(tex.size > 0))
-		draw_textured(&vbo_data[0], vbo_data.size(), tex.tex, shad);
+	static f32 aa_px_dist = 1;
+	ImGui::DragFloat("aa_px_dist", &aa_px_dist, 0.05f);
+
+	if (shad.get_prog_handle() != 0) {
+		glUseProgram(shad.get_prog_handle());
+
+		glUniform1f(glGetUniformLocation(shad.get_prog_handle(), "onedge_val"), onedge_val / 255);
+		glUniform1f(glGetUniformLocation(shad.get_prog_handle(), "outline_delta"), outline_delta);
+		glUniform2fv(glGetUniformLocation(shad.get_prog_handle(), "sdf_delta_per_uv_unit"), 1, &sdf_delta_per_uv_unit.x);
+		glUniform1f(glGetUniformLocation(shad.get_prog_handle(), "aa_px_dist"), aa_px_dist);
+
+		if (vbo_data.size() > 0 && all(tex.size > 0))
+			draw_textured(&vbo_data[0], vbo_data.size(), tex.tex, shad);
+	}
 }
