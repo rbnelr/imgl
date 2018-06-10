@@ -74,7 +74,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)deps\glfw-3.2.1.bin.WIN64\include\GLFW;$(ProjectDir)deps\stb;$(ProjectDir)deps\glad;$(ProjectDir)raz_libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)deps\glfw-3.2.1.bin.WIN64\include\GLFW;$(ProjectDir)deps\stb;$(ProjectDir)deps\dear_imgui;$(ProjectDir)deps\glad;$(ProjectDir)raz_libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ShowIncludes>false</ShowIncludes>
     </ClCompile>
     <Link>
@@ -87,7 +87,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)deps\glfw-3.2.1.bin.WIN64\include\GLFW;$(ProjectDir)deps\stb;$(ProjectDir)deps\glad;$(ProjectDir)raz_libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)deps\glfw-3.2.1.bin.WIN64\include\GLFW;$(ProjectDir)deps\stb;$(ProjectDir)deps\dear_imgui;$(ProjectDir)deps\glad;$(ProjectDir)raz_libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ShowIncludes>false</ShowIncludes>
     </ClCompile>
     <Link>
@@ -102,7 +102,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)deps\glfw-3.2.1.bin.WIN64\include\GLFW;$(ProjectDir)deps\stb;$(ProjectDir)deps\glad;$(ProjectDir)raz_libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)deps\glfw-3.2.1.bin.WIN64\include\GLFW;$(ProjectDir)deps\stb;$(ProjectDir)deps\dear_imgui;$(ProjectDir)deps\glad;$(ProjectDir)raz_libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ShowIncludes>false</ShowIncludes>
     </ClCompile>
     <Link>
@@ -119,7 +119,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)deps\glfw-3.2.1.bin.WIN64\include\GLFW;$(ProjectDir)deps\stb;$(ProjectDir)deps\glad;$(ProjectDir)raz_libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)deps\glfw-3.2.1.bin.WIN64\include\GLFW;$(ProjectDir)deps\stb;$(ProjectDir)deps\dear_imgui;$(ProjectDir)deps\glad;$(ProjectDir)raz_libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ShowIncludes>false</ShowIncludes>
     </ClCompile>
     <Link>
@@ -130,15 +130,25 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="deps\glad\glad.c" />
+    <ClInclude Include="dear_imgui.hpp" />
+    <ClInclude Include="deps\dear_imgui\imconfig.h" />
+    <ClCompile Include="deps\dear_imgui\imgui.h" />
+    <ClCompile Include="deps\dear_imgui\imgui_demo.cpp" />
+    <ClInclude Include="deps\dear_imgui\imgui_internal.h" />
+    <ClCompile Include="deps\glad\glad.c" />
+    <ClCompile Include="deps\dear_imgui\imgui.cpp" />
+    <ClCompile Include="deps\dear_imgui\imgui_draw.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="colors.hpp" />
     <ClInclude Include="deps\glad\glad.h" />
     <ClInclude Include="deps\glad\khrplatform.h" />
+    <ClInclude Include="deps\stb\stb_rect_pack.h" />
+    <ClInclude Include="deps\stb\stb_truetype.h" />
     <ClInclude Include="font.hpp" />
     <ClInclude Include="imgl.hpp" />
+    <ClInclude Include="opengl_draw.hpp" />
     <ClInclude Include="platform_window.hpp" />
     <ClInclude Include="raz_libs\basic_typedefs.hpp" />
     <ClInclude Include="raz_libs\compiler_specific.hpp" />
@@ -161,6 +171,10 @@
     <Text Include="todo.txt" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="shaders\imgui.frag" />
+    <None Include="shaders\imgui.vert" />
+    <None Include="shaders\sdf_font.frag" />
+    <None Include="shaders\sdf_font.vert" />
     <None Include="shaders\solid_col.frag" />
     <None Include="shaders\solid_col.vert" />
     <None Include="shaders\textured.frag" />

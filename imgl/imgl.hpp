@@ -37,6 +37,8 @@ struct RectI {
 	}
 };
 
+#include "imgui.h" // i am still setting imgui input in the glfw input callbacks
+
 // abstracts window opening, opengl context init, window position saving, vsync, etc.  (window buffer clearing currently also happens here)
 // changing OS and or graphics library (DirectX, Vulkan, etc.) would require a different header here
 #include "platform_window.hpp"
@@ -60,6 +62,8 @@ bool begin_window (std::string const& title, rgb8 clear_col=0, e_input_mode inpu
 
 	bool keep_open = window.begin_window(input_mode);
 
+	//glEnable(GL_FRAMEBUFFER_SRGB);
+
 	auto sz = window.get_size();
 	glScissor(0,0, sz.x,sz.y);
 	glViewport(0,0, sz.x,sz.y);
@@ -80,7 +84,9 @@ void close_window () {
 }
 
 //
-#include "rendering.hpp" // abstracts how
+#include "dear_imgui.hpp"
+
+#include "rendering.hpp"
 
 void text (std::string const& str, std::string font="c:/windows/fonts/arial.ttf") {
 	int lines = count_lines(str);

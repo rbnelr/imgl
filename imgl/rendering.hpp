@@ -25,20 +25,11 @@ Sized_Font* cached_font (std::string font_filepath, f32 desired_line_h_px) {
 
 #include <vector>
 
+#include "shader.hpp"
 #include "texture.hpp"
 using namespace gl_texture;
 
-#include "shader.hpp"
-
-void flip_vertical_inplace (void* rows, uptr row_size, uptr rows_count) {
-	for (uptr row=0; row<rows_count/2; ++row) {
-		char* row_a = (char*)rows +row_size * row;
-		char* row_b = (char*)rows +row_size * (rows_count -1 -row);
-		for (uptr i=0; i<row_size; ++i) {
-			std::swap(row_a[i], row_b[i]);
-		}
-	}
-}
+#include "image_processing.hpp"
 
 struct Sized_Font {
 	stbtt_bakedchar chars['~' -' ']; // all ascii
@@ -139,75 +130,7 @@ int count_lines (std::string const& s) {
 	return lines;
 }
 
-struct Textured_Vertex {
-	fv2		pos_screen;
-	fv2		uv;
-	rgba8	col;
-};
-void draw_textured (std::vector<Textured_Vertex> const& vbo_data, Texture2D const& tex) {
-	
-	auto alloc_vbo = [] () {
-		GLuint vbo;
-		glGenBuffers(1, &vbo);
-		return vbo;
-	};
-	static GLuint vbo = alloc_vbo();
-
-	auto bind_vbos = [&] (Shader const& shad, GLuint vbo) {
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
-		GLint loc_pos =		glGetAttribLocation(shad.get_prog_handle(), "attr_pos_screen");
-		GLint loc_uv =		glGetAttribLocation(shad.get_prog_handle(), "attr_uv");
-		GLint loc_col =		glGetAttribLocation(shad.get_prog_handle(), "attr_col");
-
-		glEnableVertexAttribArray(loc_pos);
-		glVertexAttribPointer(loc_pos, 2, GL_FLOAT, GL_FALSE, sizeof(Textured_Vertex), (void*)offsetof(Textured_Vertex, pos_screen));
-
-		glEnableVertexAttribArray(loc_uv);
-		glVertexAttribPointer(loc_uv, 2, GL_FLOAT, GL_FALSE, sizeof(Textured_Vertex), (void*)offsetof(Textured_Vertex, uv));
-
-		glEnableVertexAttribArray(loc_col);
-		glVertexAttribPointer(loc_col, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Textured_Vertex), (void*)offsetof(Textured_Vertex, col));
-	};
-
-	static auto shad = load_shader("shaders/textured.vert", "shaders/textured.frag");
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_SCISSOR_TEST);
-
-	glUseProgram(shad.get_prog_handle());
-
-	static GLint loc_screen_dim = glGetUniformLocation(shad.get_prog_handle(), "screen_dim");
-	glUniform2f(loc_screen_dim, (f32)window.get_size().x,(f32)window.get_size().y);
-
-
-	static GLint tex_unit = 0;
-
-	static GLint tex_loc = glGetUniformLocation(shad.get_prog_handle(), "tex");
-	glUniform1i(tex_loc, tex_unit);
-
-	static GLint draw_wireframe_loc = glGetUniformLocation(shad.get_prog_handle(), "draw_wireframe");
-	glUniform1i(draw_wireframe_loc, false);
-
-	bind_texture(tex_unit, tex);
-
-
-	bind_vbos(shad, vbo);
-
-	if (vbo_data.size() > 0) {
-		glBufferData(GL_ARRAY_BUFFER, vbo_data.size() * sizeof(Textured_Vertex), NULL, GL_STREAM_DRAW); // buffer orphan
-		glBufferData(GL_ARRAY_BUFFER, vbo_data.size() * sizeof(Textured_Vertex), &vbo_data[0], GL_STREAM_DRAW);
-
-		glDrawArrays(GL_TRIANGLES, 0, (GLsizei)vbo_data.size());
-	}
-}
-void push_rect (std::vector<Textured_Vertex>* vbo_data, fv2 pos_l, fv2 pos_h, fv2 uv_l, fv2 uv_h, rgba8 col) {
-	for (fv2 p : { fv2(1,0), fv2(1,1), fv2(0,0), fv2(0,0), fv2(1,1), fv2(0,1) } )
-		vbo_data->push_back({ lerp(pos_l,pos_h,p), lerp(uv_l,uv_h,p), col });
-}
+#include "opengl_draw.hpp"
 
 void render_text (Window const& wnd, Region reg, std::string const& text, Sized_Font* font, f32 desired_line_h_px) { // start new line at newline chars
 	
@@ -240,39 +163,78 @@ void render_text (Window const& wnd, Region reg, std::string const& text, Sized_
 		push_rect(&vbo_data, fv2(quad.x0,quad.y0),fv2(quad.x1,quad.y1), fv2(quad.s0,quad.t0),fv2(quad.s1,quad.t1), 255);
 	}
 
-	draw_textured(vbo_data, font->atlas);
+	if (vbo_data.size() > 0)
+		draw_textured(&vbo_data[0], vbo_data.size(), font->atlas);
 }
 
 void sdf_test () {
-	auto std_test_tex = [] () {
+	struct Sized_Tex {
+		Texture2D	tex;
+		s32v2		size = 0;
+	};
+	
+	auto std_test_tex = [] (char codepoint, std::string fontpath, f32 font_height, f32 padding_ratio, f32 onedge_val) {
+		Sized_Tex sdf;
+		
 		Blob file_data;
-		assert(load_binary_file("c:/windows/fonts/arial.ttf", &file_data));
+		if (!load_binary_file(fontpath.c_str(), &file_data))
+			return sdf;
 
 		stbtt_fontinfo fontinfo;
 
-		assert(stbtt_InitFont(&fontinfo, (u8*)file_data.data, 0));
+		if (!stbtt_InitFont(&fontinfo, (u8*)file_data.data, 0))
+			return sdf;
 
+		if (codepoint == (int)' ')
+			return sdf;
+
+		f32 padding = font_height * padding_ratio;
 
 		s32v2 sdf_glyph_origin;
 
-		s32v2 sdf_size;
-		u8* sdf_pixels = stbtt_GetCodepointSDF(&fontinfo, stbtt_ScaleForPixelHeight(&fontinfo, 220), (int)'a', 50, 180, 180.0f/50, &sdf_size.x,&sdf_size.y, &sdf_glyph_origin.x,&sdf_glyph_origin.y);
+		u8* sdf_pixels = stbtt_GetCodepointSDF(&fontinfo, stbtt_ScaleForPixelHeight(&fontinfo, font_height), (int)codepoint, padding, onedge_val, onedge_val / padding, &sdf.size.x,&sdf.size.y, &sdf_glyph_origin.x,&sdf_glyph_origin.y);
 
-		flip_vertical_inplace(sdf_pixels, sdf_size.x * sizeof(u8), sdf_size.y);
+		flip_vertical_inplace(sdf_pixels, sdf.size.x * sizeof(u8), sdf.size.y);
 
-		auto sdf_tex = single_mip_texture(PF_LR8, sdf_pixels, sdf_size, FILTER_BILINEAR, FILTER_NO_ANISO);
+		sdf.tex = single_mip_texture(PF_LR8, sdf_pixels, sdf.size, FILTER_BILINEAR, FILTER_NO_ANISO);
 
-		return sdf_tex;
+		stbtt_FreeSDF(sdf_pixels, nullptr);
+
+		return sdf;
 	};
-	static auto tex = std_test_tex();
+	static Sized_Tex tex;
+
+	static bool regen = true;
+
+	static std::string codepoint = "a";
+	static std::string fontpath = "c:/windows/fonts/arial.ttf";
+	static f32 font_height = 64;
+	static f32 padding_ratio = 0.2f;
+	static f32 onedge_val = 180;
+
+	regen = ImGui::InputText_str("codepoint", &codepoint) || regen;
+	regen = ImGui::InputText_str("fontpath", &fontpath) || regen;
+	regen = ImGui::DragFloat("font_height", &font_height, 0.05f) || regen;
+	regen = ImGui::DragFloat("padding_ratio", &padding_ratio, 0.005f) || regen;
+	regen = ImGui::DragFloat("onedge_val", &onedge_val, 0.05f) || regen;
+
+	if (regen)
+		tex = std_test_tex(codepoint.size() >= 1 ? codepoint[0] : '_', fontpath, font_height, padding_ratio, onedge_val);
+	regen = false;
+
+	ImGui::Value("glyph size", tex.size);
 
 	fv2 full_sz = (fv2)window.get_size();
 	fv2 sz = min(full_sz.x,full_sz.y) * 0.9f;
+	sz.x = sz.y * ((f32)tex.size.x / (f32)tex.size.y);
 
 	fv2 pos = (full_sz -sz) / 2;
 
 	std::vector<Textured_Vertex> vbo_data;
 	push_rect(&vbo_data, pos, pos+sz, fv2(0,1),fv2(1,0), 255);
 
-	draw_textured(vbo_data, tex);
+	static auto shad = load_shader("shaders/sdf_font.vert", "shaders/sdf_font.frag");
+
+	if (vbo_data.size() > 0 && all(tex.size > 0))
+		draw_textured(&vbo_data[0], vbo_data.size(), tex.tex, shad);
 }

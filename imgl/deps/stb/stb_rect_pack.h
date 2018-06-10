@@ -1,3 +1,5 @@
+#pragma once // both my project and dear imgui, which the project uses, include stb headers, prevent double inclusion 
+
 // stb_rect_pack.h - v0.11 - public domain - rectangle packing
 // Sean Barrett 2014
 //

@@ -6,12 +6,16 @@ using std::string;
 #include "stdio.h"
 
 #include "basic_typedefs.hpp"
+#include "defer.hpp"
 
 bool load_text_file (string const& filepath, string* text) {
 
 	FILE* f = fopen(filepath.c_str(), "rb"); // we don't want "\r\n" to "\n" conversion, because it interferes with our file size calculation
 	if (!f)
 		return false;
+	defer {
+		fclose(f);
+	};
 
 	fseek(f, 0, SEEK_END);
 	int filesize = ftell(f);
@@ -64,6 +68,9 @@ bool load_binary_file (string const& filepath, Blob* blob) {
 	FILE* f = fopen(filepath.c_str(), "rb"); // we don't want "\r\n" to "\n" conversion
 	if (!f)
 		return false;
+	defer {
+		fclose(f);
+	};
 
 	fseek(f, 0, SEEK_END);
 	int filesize = ftell(f);
@@ -83,6 +90,9 @@ bool load_fixed_size_binary_file (string const& filepath, void* data, uptr sz) {
 	FILE* f = fopen(filepath.c_str(), "rb");
 	if (!f)
 		return false;
+	defer {
+		fclose(f);
+	};
 
 	fseek(f, 0, SEEK_END);
 	int filesize = ftell(f);
@@ -103,6 +113,9 @@ bool write_fixed_size_binary_file (string const& filepath, void const* data, upt
 	FILE* f = fopen(filepath.c_str(), "wb");
 	if (!f)
 		return false;
+	defer {
+		fclose(f);
+	};
 
 	uptr ret = fwrite(data, 1,sz, f);
 	if (ret != sz)

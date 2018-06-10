@@ -19,6 +19,19 @@
     <ClCompile Include="main.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="deps\dear_imgui\imgui_draw.cpp">
+      <Filter>deps</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\dear_imgui\imgui.h" />
+    <ClCompile Include="deps\glad\glad.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\dear_imgui\imgui_demo.cpp">
+      <Filter>deps</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\dear_imgui\imgui.cpp">
+      <Filter>deps</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgl.hpp">
@@ -84,11 +97,26 @@
     <ClInclude Include="deps\glad\khrplatform.h">
       <Filter>deps</Filter>
     </ClInclude>
-    <ClInclude Include="deps\glad\glad.c">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="shader.hpp">
       <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="dear_imgui.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="opengl_draw.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\dear_imgui\imconfig.h">
+      <Filter>deps</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\dear_imgui\imgui_internal.h">
+      <Filter>deps</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\stb\stb_rect_pack.h">
+      <Filter>deps</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\stb\stb_truetype.h">
+      <Filter>deps</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -105,6 +133,18 @@
       <Filter>shaders</Filter>
     </None>
     <None Include="shaders\textured.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\imgui.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\imgui.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\sdf_font.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\sdf_font.vert">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>

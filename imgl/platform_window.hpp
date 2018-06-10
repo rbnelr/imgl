@@ -1,5 +1,5 @@
 
-#include "glad.c"
+#include "glad.h"
 
 #include "windows.h"
 #include "Shlobj.h"
@@ -214,6 +214,12 @@ struct Window {
 
 		glfwGetFramebufferSize(window, &framebuffer_size_px.x,&framebuffer_size_px.y);
 
+		{
+			double x,y;
+			glfwGetCursorPos(window, &x, &y);
+			mcursor_pos_px = s32v2((int)x,(int)y);
+		}
+
 		bool keep_open = !glfwWindowShouldClose(window);
 		return keep_open;
 	}
@@ -262,6 +268,7 @@ struct Window {
 	bool lmb_down = false;
 	bool rmb_down = false;
 
+	s32v2 mcursor_pos_px = 0;
 	int mouse_wheel_diff = 0;
 
 	bool do_toggle_fullscreen = false;
@@ -288,17 +295,17 @@ struct Window {
 	static void glfw_key_event (GLFWwindow* window, int key, int scancode, int action, int mods) {
 		Window* obj = (Window*)glfwGetWindowUserPointer(window);
 
-		//ImGuiIO& io = ImGui::GetIO();
-		//
-		//if (key >= 0 && key < ARRLEN(io.KeysDown))
-		//	io.KeysDown[key] = action != GLFW_RELEASE;
-		//
-		//// from https://github.com/ocornut/imgui/blob/master/examples/opengl3_example/imgui_impl_glfw_gl3.cpp
-		//(void)mods; // Modifiers are not reliable across systems
-		//io.KeyCtrl = io.KeysDown[GLFW_KEY_LEFT_CONTROL] || io.KeysDown[GLFW_KEY_RIGHT_CONTROL];
-		//io.KeyShift = io.KeysDown[GLFW_KEY_LEFT_SHIFT] || io.KeysDown[GLFW_KEY_RIGHT_SHIFT];
-		//io.KeyAlt = io.KeysDown[GLFW_KEY_LEFT_ALT] || io.KeysDown[GLFW_KEY_RIGHT_ALT];
-		//io.KeySuper = io.KeysDown[GLFW_KEY_LEFT_SUPER] || io.KeysDown[GLFW_KEY_RIGHT_SUPER];
+		ImGuiIO& io = ImGui::GetIO();
+		
+		if (key >= 0 && key < ARRLEN(io.KeysDown))
+			io.KeysDown[key] = action != GLFW_RELEASE;
+		
+		// from https://github.com/ocornut/imgui/blob/master/examples/opengl3_example/imgui_impl_glfw_gl3.cpp
+		(void)mods; // Modifiers are not reliable across systems
+		io.KeyCtrl = io.KeysDown[GLFW_KEY_LEFT_CONTROL] || io.KeysDown[GLFW_KEY_RIGHT_CONTROL];
+		io.KeyShift = io.KeysDown[GLFW_KEY_LEFT_SHIFT] || io.KeysDown[GLFW_KEY_RIGHT_SHIFT];
+		io.KeyAlt = io.KeysDown[GLFW_KEY_LEFT_ALT] || io.KeysDown[GLFW_KEY_RIGHT_ALT];
+		io.KeySuper = io.KeysDown[GLFW_KEY_LEFT_SUPER] || io.KeysDown[GLFW_KEY_RIGHT_SUPER];
 
 		switch (key) {
 			case GLFW_KEY_F11: {
@@ -310,7 +317,7 @@ struct Window {
 	static void glfw_char_event (GLFWwindow* window, unsigned int codepoint, int mods) {
 		Window* obj = (Window*)glfwGetWindowUserPointer(window);
 
-		//ImGuiIO& io = ImGui::GetIO();
-		//io.AddInputCharacter((char)codepoint);
+		ImGuiIO& io = ImGui::GetIO();
+		io.AddInputCharacter((char)codepoint);
 	}
 };

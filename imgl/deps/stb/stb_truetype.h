@@ -1,3 +1,5 @@
+#pragma once // both my project and dear imgui, which the project uses, include stb headers, prevent double inclusion 
+
 // stb_truetype.h - v1.19 - public domain
 // authored from 2009-2016 by Sean Barrett / RAD Game Tools
 //

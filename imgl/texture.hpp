@@ -8,6 +8,7 @@ namespace gl_texture {
 
 	enum pixel_format_e {
 		PF_LR8,
+		//PF_SRGBA8, // alpha is always linear in opengl
 	};
 	enum minmag_filter_e {
 		FILTER_NEAREST,
@@ -63,7 +64,8 @@ namespace gl_texture {
 			GLenum cpu_format;
 
 			switch (format) {
-				case PF_LR8:	internal_format = GL_R8;	cpu_format = GL_RED;	break;
+				case PF_LR8:	internal_format = GL_R8;			cpu_format = GL_RED;	break;
+				//case PF_SRGBA8:	internal_format = GL_SRGB8_ALPHA8;	cpu_format = GL_RGBA;	break;
 				default: assert(not_implemented);
 			}
 			
