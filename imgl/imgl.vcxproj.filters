@@ -22,7 +22,6 @@
     <ClCompile Include="deps\dear_imgui\imgui_draw.cpp">
       <Filter>deps</Filter>
     </ClCompile>
-    <ClCompile Include="deps\dear_imgui\imgui.h" />
     <ClCompile Include="deps\glad\glad.c">
       <Filter>src</Filter>
     </ClCompile>
@@ -30,6 +29,9 @@
       <Filter>deps</Filter>
     </ClCompile>
     <ClCompile Include="deps\dear_imgui\imgui.cpp">
+      <Filter>deps</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\dear_imgui\imgui.h">
       <Filter>deps</Filter>
     </ClCompile>
   </ItemGroup>
@@ -123,12 +125,6 @@
     <Text Include="todo.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\solid_col.frag">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shaders\solid_col.vert">
-      <Filter>shaders</Filter>
-    </None>
     <None Include="shaders\textured.frag">
       <Filter>shaders</Filter>
     </None>
@@ -145,6 +141,12 @@
       <Filter>shaders</Filter>
     </None>
     <None Include="shaders\sdf_font.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\solid.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\solid.frag">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>

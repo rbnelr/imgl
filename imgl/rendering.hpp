@@ -167,83 +167,256 @@ void render_text (Window const& wnd, Region reg, std::string const& text, Sized_
 		draw_textured(&vbo_data[0], vbo_data.size(), font->atlas);
 }
 
+struct SDF_Font_Glyph {
+	s32v2	atlas_pos;
+	s32v2	size = 0;
+	s32v2	glyph_origin = 0;
+
+	int		stbtt_glyph_index = -1;
+};
+struct SDF_Font_Atlas {
+	Texture2D	tex;
+	s32v2		size = 0;
+
+	Blob			ttf_file_data;
+
+	stbtt_fontinfo	stbtt_fontinfo;
+
+	static constexpr int glyphs_first = ' ';
+	static constexpr int glyphs_last = '~';
+	static constexpr int glyphs_count = glyphs_last -glyphs_first +1;
+
+	bool is_valid () { return tex.get_handle() != 0; }
+
+	SDF_Font_Glyph	glyphs[glyphs_count]; // ASCII range
+
+	SDF_Font_Glyph* get_codepoint (int c) {
+		if (!(c >= glyphs_first && c <= glyphs_last))
+			return nullptr;
+		return &glyphs[c -glyphs_first];
+	}
+};
+
 void sdf_test () {
-	struct Sized_Tex {
-		Texture2D	tex;
-		s32v2		size = 0;
-	};
 	
-	auto std_test_tex = [] (char codepoint, std::string fontpath, f32 font_height, f32 padding, f32 onedge_val, f32* val_delta_per_texel) {
-		Sized_Tex sdf;
+	auto std_test_tex = [] (std::string fontpath, f32 font_height, int padding, u8 onedge_val, f32* val_delta_per_texel) {
+		SDF_Font_Atlas sdf;
 		
-		Blob file_data;
-		if (!load_binary_file(fontpath.c_str(), &file_data))
+		if (!load_binary_file(fontpath.c_str(), &sdf.ttf_file_data))
 			return sdf;
 
-		stbtt_fontinfo fontinfo;
-
-		if (!stbtt_InitFont(&fontinfo, (u8*)file_data.data, 0))
+		if (!stbtt_InitFont(&sdf.stbtt_fontinfo, (u8*)sdf.ttf_file_data.data, 0))
 			return sdf;
 
-		if (codepoint == (int)' ')
-			return sdf;
+		f32 scale = stbtt_ScaleForPixelHeight(&sdf.stbtt_fontinfo, font_height);
 
-		s32v2 sdf_glyph_origin;
+		*val_delta_per_texel = (f32)onedge_val / (f32)padding;
+		
+		typedef u8 pixel;
 
-		*val_delta_per_texel = onedge_val / padding;
+		struct Glyph {
+			pixel*	sdf_pixels = nullptr;
 
-		u8* sdf_pixels = stbtt_GetCodepointSDF(&fontinfo, stbtt_ScaleForPixelHeight(&fontinfo, font_height), (int)codepoint, padding, onedge_val, *val_delta_per_texel, &sdf.size.x,&sdf.size.y, &sdf_glyph_origin.x,&sdf_glyph_origin.y);
+			~Glyph () {
+				stbtt_FreeSDF(sdf_pixels, nullptr);
+			}
+		};
+		Glyph glyphs[SDF_Font_Atlas::glyphs_count] = {};
+		stbrp_rect	stbrp_rects[SDF_Font_Atlas::glyphs_count] = {};
 
-		flip_vertical_inplace(sdf_pixels, sdf.size.x * sizeof(u8), sdf.size.y);
+		for (int i=0; i<SDF_Font_Atlas::glyphs_count; ++i) {
+			auto& g = glyphs[i];
+			auto& output_g = sdf.glyphs[i];
 
-		sdf.tex = single_mip_texture(PF_LR8, sdf_pixels, sdf.size, FILTER_BILINEAR, FILTER_NO_ANISO);
+			output_g.stbtt_glyph_index = stbtt_FindGlyphIndex(&sdf.stbtt_fontinfo, (int)(SDF_Font_Atlas::glyphs_first +i));
 
-		stbtt_FreeSDF(sdf_pixels, nullptr);
+			g.sdf_pixels = stbtt_GetGlyphSDF(&sdf.stbtt_fontinfo, scale, output_g.stbtt_glyph_index, padding, onedge_val, *val_delta_per_texel, &output_g.size.x,&output_g.size.y, &output_g.glyph_origin.x,&output_g.glyph_origin.y);
+
+			auto& rect = stbrp_rects[i];
+
+			rect.w = output_g.size.x;
+			rect.h = output_g.size.y;
+		}
+
+		int atlas_width = 256;
+		int atlas_height = atlas_width;
+
+		int used_height;
+		bool all_packed = false;
+		while (!all_packed) {
+			stbrp_context	context;
+			int				num_nodes = atlas_width;
+			std::vector<stbrp_node>	nodes(num_nodes);
+
+			stbrp_init_target(&context, atlas_width, atlas_height, &nodes[0], num_nodes);
+
+			bool res = stbrp_pack_rects(&context, stbrp_rects, SDF_Font_Atlas::glyphs_count) != 0;
+
+			all_packed = true;
+			used_height = 0;
+
+			for (int i=0; i<SDF_Font_Atlas::glyphs_count; ++i) {
+				auto& r = stbrp_rects[i];
+				
+				if (!r.was_packed) {
+					all_packed = false;
+					break;
+				}
+				used_height = max(used_height, r.y +r.h);
+
+				sdf.glyphs[i].atlas_pos = s32v2(r.x, r.y);
+			}
+
+			assert(all_packed == res);
+			
+			if (!all_packed) {
+				atlas_width *= 2;
+				atlas_height = atlas_width;
+			}
+		}
+
+
+		std::vector<pixel> atlas_pixels(atlas_width * atlas_height, 0); // clear to zero
+
+		for (int i=0; i<SDF_Font_Atlas::glyphs_count; ++i) {
+			auto& r = stbrp_rects[i];
+
+			for (int y=0; y<r.h; ++y) {
+				for (int x=0; x<r.w; ++x) {
+					s32v2 out_pixel = s32v2(r.x +x, r.y +y);
+
+					atlas_pixels[out_pixel.y * atlas_width +out_pixel.x] = glyphs[i].sdf_pixels[y * r.w +x];
+				}
+			}
+		}
+
+		sdf.size = s32v2(atlas_width,atlas_height);
+		
+		flip_vertical_inplace(&atlas_pixels[0], sdf.size.x * sizeof(u8), sdf.size.y);
+		
+		sdf.tex = single_mip_texture(PF_LR8, &atlas_pixels[0], sdf.size, FILTER_BILINEAR, FILTER_NO_ANISO);
 
 		return sdf;
 	};
-	static Sized_Tex tex;
+	static SDF_Font_Atlas sdf_atlas;
 
 	static bool regen = true;
 
-	static std::string codepoint = "a";
-	static std::string fontpath = "c:/windows/fonts/arial.ttf";
+	static std::string fontpath = "c:/windows/fonts/times.ttf";
 	static f32 font_height = 64;
-	static f32 outline_ratio = 0.03f;
-	static f32 padding_ratio = 0.1f;
-	static f32 onedge_val = 180;
+	static f32 padding_ratio = 0.05f;
+	static int onedge_val = 180;
 
-	regen = ImGui::InputText_str("codepoint", &codepoint) || regen;
 	regen = ImGui::InputText_str("fontpath", &fontpath) || regen;
 	regen = ImGui::DragFloat("font_height", &font_height, 0.05f) || regen;
-	regen = ImGui::DragFloat("outline_ratio", &outline_ratio, 0.005f) || regen;
 
 	regen = ImGui::DragFloat("padding_ratio", &padding_ratio, 0.005f) || regen;
-	regen = ImGui::DragFloat("onedge_val", &onedge_val, 0.05f) || regen;
+	regen = ImGui::DragInt("onedge_val", &onedge_val, 0.05f, 0,255) || regen;
 
 	static f32 sdf_delta_per_texel;
 
 	if (regen)
-		tex = std_test_tex(codepoint.size() >= 1 ? codepoint[0] : '_', fontpath, font_height, font_height * padding_ratio, onedge_val, &sdf_delta_per_texel);
+		sdf_atlas = std_test_tex(fontpath, font_height, (int)roundf(font_height * padding_ratio), (u8)onedge_val, &sdf_delta_per_texel);
 	regen = false;
+
+	static f32 outline_ratio = 0;//0.03f;
+	ImGui::DragFloat("outline_ratio", &outline_ratio, 0.005f);
 
 	float outline = font_height * outline_ratio;
 
-	ImGui::Value("glyph size", tex.size);
+	ImGui::Value("glyph size", sdf_atlas.size);
 	ImGui::Value("outline", outline);
 	ImGui::Value("sdf_delta_per_texel", sdf_delta_per_texel);
 
-	fv2 sdf_delta_per_uv_unit = (sdf_delta_per_texel / 255) * (fv2)tex.size;
+	fv2 sdf_delta_per_uv_unit = (sdf_delta_per_texel / 255) * (fv2)sdf_atlas.size;
 	f32 outline_delta = (sdf_delta_per_texel / 255) * outline;
 
-	fv2 full_sz = (fv2)window.get_size();
-	fv2 sz = min(full_sz.x,full_sz.y) * 0.9f;
-	sz.x = sz.y * ((f32)tex.size.x / (f32)tex.size.y);
-
-	fv2 pos = (full_sz -sz) / 2;
+	static f32 display_scale = 470;
+	ImGui::DragFloat("display size", &display_scale);
 
 	std::vector<Textured_Vertex> vbo_data;
-	push_rect(&vbo_data, pos, pos+sz, fv2(0,1),fv2(1,0), 255);
+	std::vector<Solid_Vertex> dbg_overlay_vbo_data;
+	if (0 && sdf_atlas.is_valid()) {
+		fv2 full_sz = (fv2)window.get_size();
+		fv2 sz = min(full_sz.x,full_sz.y) * 0.9f;
+		sz.x = sz.y * ((f32)sdf_atlas.size.x / (f32)sdf_atlas.size.y);
+
+		fv2 pos = (full_sz -sz) / 2;
+
+		push_rect(&vbo_data, pos, pos+sz, fv2(0,1),fv2(1,0), 255);
+	} else if (sdf_atlas.is_valid()) {
+		
+		cstr text = "Training in\nProgress...";
+		char* cur = (char*)text;
+
+		fv2 rect_p = fv2(500, 200);
+		fv2 rect_sz = fv2(800, 500);
+
+		push_rect_outline(&dbg_overlay_vbo_data, rect_p, rect_p +rect_sz, rgba8(100,255,100,255));
+
+		f32 scale = stbtt_ScaleForPixelHeight(&sdf_atlas.stbtt_fontinfo, display_scale);
+
+		f32 ascent, descent, line_gap;
+		{
+			int iascent, idescent, iline_gap;
+			stbtt_GetFontVMetrics(&sdf_atlas.stbtt_fontinfo, &iascent, &idescent, &iline_gap);
+
+			ascent =	scale * (f32)iascent;
+			descent =	scale * (f32)idescent;
+			line_gap =	scale * (f32)iline_gap;
+		}
+
+		fv2 point = rect_p +fv2(0,ascent);
+
+		while (*cur != '\0')  {
+			
+			if (newline(&cur)) {
+				point.x = rect_p.x;
+				point.y += -descent +line_gap +ascent;
+				continue;
+			}
+
+			auto* glyph = sdf_atlas.get_codepoint(*cur);
+			if (!glyph) {
+				// not in atlas
+			} else {
+				
+				fv2 pos_l = point +(0					+(fv2)glyph->glyph_origin) * (scale / stbtt_ScaleForPixelHeight(&sdf_atlas.stbtt_fontinfo, font_height));
+				fv2 pos_h = point +((fv2)glyph->size	+(fv2)glyph->glyph_origin) * (scale / stbtt_ScaleForPixelHeight(&sdf_atlas.stbtt_fontinfo, font_height));
+
+				fv2 uv_l = map( (fv2)glyph->atlas_pos +0,					0, (fv2)sdf_atlas.size);
+				fv2 uv_h = map( (fv2)glyph->atlas_pos +(fv2)glyph->size,	0, (fv2)sdf_atlas.size);
+
+				uv_l.y = 1 -uv_l.y;
+				uv_h.y = 1 -uv_h.y;
+
+				push_rect(&vbo_data, pos_l,pos_h, uv_l,uv_h, 255);
+			}
+
+			f32 advance;
+			{
+				int iadvance, ileftSideBearing;
+				stbtt_GetGlyphHMetrics(&sdf_atlas.stbtt_fontinfo, glyph->stbtt_glyph_index, &iadvance, &ileftSideBearing);
+				advance = scale * (f32)iadvance;
+			}
+
+			static bool do_kerning = true;
+			static ImGuiOnceUponAFrame once;
+			if (once) ImGui::Checkbox("kerning", &do_kerning);
+			
+			if (do_kerning && cur[1] != '\0') {
+				auto* next_glyph = sdf_atlas.get_codepoint(cur[1]);
+
+				if (next_glyph) {
+					advance += scale * stbtt_GetGlyphKernAdvance(&sdf_atlas.stbtt_fontinfo, glyph->stbtt_glyph_index, next_glyph->stbtt_glyph_index);
+				}
+			}
+
+			point.x += advance;
+
+			++cur;
+		}
+	}
 
 	static auto shad = load_shader("shaders/sdf_font.vert", "shaders/sdf_font.frag");
 
@@ -253,12 +426,15 @@ void sdf_test () {
 	if (shad.get_prog_handle() != 0) {
 		glUseProgram(shad.get_prog_handle());
 
-		glUniform1f(glGetUniformLocation(shad.get_prog_handle(), "onedge_val"), onedge_val / 255);
+		glUniform1f(glGetUniformLocation(shad.get_prog_handle(), "onedge_val"), (f32)onedge_val / 255);
 		glUniform1f(glGetUniformLocation(shad.get_prog_handle(), "outline_delta"), outline_delta);
 		glUniform2fv(glGetUniformLocation(shad.get_prog_handle(), "sdf_delta_per_uv_unit"), 1, &sdf_delta_per_uv_unit.x);
 		glUniform1f(glGetUniformLocation(shad.get_prog_handle(), "aa_px_dist"), aa_px_dist);
 
-		if (vbo_data.size() > 0 && all(tex.size > 0))
-			draw_textured(&vbo_data[0], vbo_data.size(), tex.tex, shad);
+		if (vbo_data.size() > 0 && all(sdf_atlas.size > 0))
+			draw_textured(&vbo_data[0], vbo_data.size(), sdf_atlas.tex, shad);
 	}
+
+	if (dbg_overlay_vbo_data.size())
+		draw_solid(&dbg_overlay_vbo_data[0], dbg_overlay_vbo_data.size());
 }

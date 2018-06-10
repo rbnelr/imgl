@@ -76,6 +76,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(ProjectDir)deps\glfw-3.2.1.bin.WIN64\include\GLFW;$(ProjectDir)deps\stb;$(ProjectDir)deps\dear_imgui;$(ProjectDir)deps\glad;$(ProjectDir)raz_libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ShowIncludes>false</ShowIncludes>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(ProjectDir)deps\glfw-3.2.1.bin.WIN64\lib-vc2015;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -89,6 +90,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(ProjectDir)deps\glfw-3.2.1.bin.WIN64\include\GLFW;$(ProjectDir)deps\stb;$(ProjectDir)deps\dear_imgui;$(ProjectDir)deps\glad;$(ProjectDir)raz_libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ShowIncludes>false</ShowIncludes>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(ProjectDir)deps\glfw-3.2.1.bin.WIN64\lib-vc2015;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -132,7 +134,7 @@
   <ItemGroup>
     <ClInclude Include="dear_imgui.hpp" />
     <ClInclude Include="deps\dear_imgui\imconfig.h" />
-    <ClCompile Include="deps\dear_imgui\imgui.h" />
+    <ClInclude Include="deps\dear_imgui\imgui.h" />
     <ClCompile Include="deps\dear_imgui\imgui_demo.cpp" />
     <ClInclude Include="deps\dear_imgui\imgui_internal.h" />
     <ClCompile Include="deps\glad\glad.c" />
@@ -175,8 +177,8 @@
     <None Include="shaders\imgui.vert" />
     <None Include="shaders\sdf_font.frag" />
     <None Include="shaders\sdf_font.vert" />
-    <None Include="shaders\solid_col.frag" />
-    <None Include="shaders\solid_col.vert" />
+    <None Include="shaders\solid.frag" />
+    <None Include="shaders\solid.vert" />
     <None Include="shaders\textured.frag" />
     <None Include="shaders\textured.vert" />
   </ItemGroup>

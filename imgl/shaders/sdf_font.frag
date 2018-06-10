@@ -47,14 +47,17 @@ void main () {
 		float glyph_alpha = saturate(map(sdf, onedge_val -outline_delta -edge_aa/2, onedge_val -outline_delta +edge_aa/2, 0,1));
 		float outline_alpha = saturate(map(sdf, onedge_val -edge_aa/2, onedge_val +edge_aa/2, 0,1));
 
-		frag_col = vec4(1,1,1,glyph_alpha) * mix(vec4(1,1,1,1), vec4(1,0.2,0.2,1), outline_alpha);
+		if (outline_delta == 0)
+			outline_alpha = 1;
+
+		frag_col = vec4(1,1,1,glyph_alpha) * mix(vec4(1,1,1,1), vec4(1,0.01,0.01,1), outline_alpha);
 	}
 	else if (0 != 0) {
 		frag_col = vec4(1,1,1,sdf) * vs_col;
 	}
 	else if (1 != 0) {
 		vec3 col = mix(vec3(1,0,0), vec3(0,1,0), sdf);
-		float lines = abs(mod(sdf, 0.1) -0.05) / 0.05;
+		float lines = abs(mod(sdf, 0.5) -0.25) / 0.25;
 
 		frag_col = vec4(col * lines, 1);
 	}

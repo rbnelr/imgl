@@ -8,15 +8,15 @@ typedef fv3		rgbf;
 typedef fv4		rgbaf;
 
 template <typename T> T to_linear (T srgb) {
-	return select(srgb <= T(0.0404482362771082),
-		srgb * (T(1)/T(12.92)),
-		pow( (srgb +T(0.055)) * T(1/1.055), T(2.4) )
+	return select(srgb <= T(0.0404482362771082f),
+		srgb * (T(1)/T(12.92f)),
+		pow( (srgb +T(0.055f)) * T(1/1.055f), T(2.4f) )
 		);
 }
 template <typename T> T to_srgb (T linear) {
-	return select(linear <= T(0.00313066844250063),
-		linear * T(12.92),
-		( T(1.055) * pow(linear, T(1/2.4)) ) -T(0.055)
+	return select(linear <= T(0.00313066844250063f),
+		linear * T(12.92f),
+		( T(1.055f) * pow(linear, T(1/2.4f)) ) -T(0.055f)
 		);
 }
 

@@ -2,12 +2,30 @@
 
 in		vec2	attr_pos_screen;
 in		vec2	attr_uv;
-in		vec4	attr_col;
+in		vec4	attr_col_srgba;
 
 out		vec2	vs_uv;
 out		vec4	vs_col;
 
 uniform	vec2	screen_dim;
+
+
+vec3 to_srgb (vec3 linear) {
+	bvec3 cutoff = lessThanEqual(linear, vec3(0.00313066844250063));
+	vec3 higher = vec3(1.055) * pow(linear, vec3(1.0/2.4)) -vec3(0.055);
+	vec3 lower = linear * vec3(12.92);
+
+	return mix(higher, lower, cutoff);
+}
+vec3 to_linear (vec3 srgb) {
+	bvec3 cutoff = lessThanEqual(srgb, vec3(0.0404482362771082));
+	vec3 higher = pow((srgb +vec3(0.055)) / vec3(1.055), vec3(2.4));
+	vec3 lower = srgb / vec3(12.92);
+
+	return mix(higher, lower, cutoff);
+}
+vec4 to_srgb (vec4 linear) {	return vec4(to_srgb(linear.rgb), linear.a); }
+vec4 to_linear (vec4 srgba) {	return vec4(to_linear(srgba.rgb), srgba.a); }
 
 // for wireframe
 out		vec3	vs_barycentric;
@@ -20,7 +38,7 @@ void main () {
 	
 	gl_Position =		vec4(pos * 2 -1, 0,1);
 	vs_uv =				attr_uv;
-	vs_col =			attr_col;
+	vs_col =			to_linear(attr_col_srgba);
 
 	//
 	vs_barycentric = BARYCENTRIC[gl_VertexID % 3];
